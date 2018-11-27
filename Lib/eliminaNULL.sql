@@ -1,0 +1,1 @@
+UPDATE utente_password SET note='N.N.' WHERE note IS NULL;
