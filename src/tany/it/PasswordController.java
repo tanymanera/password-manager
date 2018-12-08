@@ -50,9 +50,6 @@ public class PasswordController {
 	private TextField urlTxt;
 
 	@FXML
-	private Button selectBtn;
-
-	@FXML
 	private TableView<UtentePassword> utentePasswordTable;
 
 	@FXML
@@ -79,45 +76,7 @@ public class PasswordController {
 	@FXML
 	private TextField passwordTxt;
 
-	@FXML
-	private Button saveBtn;
-	
-	@FXML
-	private Button editBtn;
-
 	private int ente;
-	
-	@FXML
-	public void handleEditBtn() {
-		noteTxt.setEditable(true);
-		userIdTxt.setEditable(true);
-		passwordTxt.setEditable(true);
-		saveBtn.setDisable(false);
-		
-	}
-
-	@FXML
-	public void handelSaveBtn() {
-		Alert alert = new Alert(AlertType.CONFIRMATION);
-		alert.setHeaderText("Attenzione: modifica irreversibile dei dati.");
-		String userId = userIdTxt.getText();
-		String password = passwordTxt.getText();
-		String nota = noteTxt.getText();
-		String content = "Valori che saranno salvati:\n" + userId + "\n" + password + "\n" + nota;
-		alert.setContentText(content);
-		Optional<ButtonType> result = alert.showAndWait();
-		UtentePassword utente = utentePasswordTable.getSelectionModel().getSelectedItem();
-		int id = utente.getId();
-
-		if (result.get() == ButtonType.OK) {
-			model.aggiornaUtente(id, userId, password, nota);
-
-			ObservableList<UtentePassword> utenti = listUtenti(ente);
-			utentePasswordTable.setItems(utenti);
-			
-		} 
-		clearAll();
-	}
 
 	@FXML
 	void handleShow(MouseEvent event) {
@@ -133,30 +92,21 @@ public class PasswordController {
 		noteTxt.setText(utente.getNote());
 		userIdTxt.setText(utente.getUserId());
 		passwordTxt.setText(utente.getPassword());
-		editBtn.setDisable(false);
-		saveBtn.setDisable(true);
-		noteTxt.setEditable(false);
-		userIdTxt.setEditable(false);
-		passwordTxt.setEditable(false);
 
 	}
 
 	private void clearAll() {
-		saveBtn.setDisable(true);
-		editBtn.setDisable(true);
+
 		noteTxt.clear();
 		userIdTxt.clear();
 		passwordTxt.clear();
-		noteTxt.setEditable(false);
-		userIdTxt.setEditable(false);
-		passwordTxt.setEditable(false);
+
 	}
 
 	@FXML
 	void initialize() {
 		assert entiCombo != null : "fx:id=\"entiCombo\" was not injected: check your FXML file 'password.fxml'.";
 		assert urlTxt != null : "fx:id=\"urlTxt\" was not injected: check your FXML file 'password.fxml'.";
-		assert selectBtn != null : "fx:id=\"selectBtn\" was not injected: check your FXML file 'password.fxml'.";
 		assert utentePasswordTable != null : "fx:id=\"utentePasswordTable\" was not injected: check your FXML file 'password.fxml'.";
 		assert utenteColumn != null : "fx:id=\"nameColumn\" was not injected: check your FXML file 'password.fxml'.";
 		assert userIdColumn != null : "fx:id=\"userIdColumn\" was not injected: check your FXML file 'password.fxml'.";
@@ -166,7 +116,6 @@ public class PasswordController {
 		assert noteTxt != null : "fx:id=\"noteTxt\" was not injected: check your FXML file 'password.fxml'.";
 		assert userIdTxt != null : "fx:id=\"userIdTxt\" was not injected: check your FXML file 'password.fxml'.";
 		assert passwordTxt != null : "fx:id=\"passwordTxt\" was not injected: check your FXML file 'password.fxml'.";
-		assert saveBtn != null : "fx:id=\"saveBtn\" was not injected: check your FXML file 'password.fxml'.";
 
 		utenteColumn.setCellValueFactory(new PropertyValueFactory<>("utente"));
 		userIdColumn.setCellValueFactory(new PropertyValueFactory<>("userId"));
@@ -177,27 +126,43 @@ public class PasswordController {
 
 	public void setModel(Model model) {
 		this.model = model;
-		List<Ente> enti = model.listEnti();
+		// aggiunge una riga vuota alla combo
+		entiCombo.getItems().add(new Ente());
+		List<Ente> enti = model.getEnti();
 		enti.sort(Comparator.comparing(Ente::getNome));
 		entiCombo.getItems().addAll(enti);
+		Ente selezionato = Model.getEnteSelezionato();
+		if(selezionato != null) {
+			entiCombo.getSelectionModel().select(selezionato);
+			
+			setInitialState();
+		}
+		
 
 	}
 
 	public ObservableList<UtentePassword> listUtenti(int idEnte) {
 		ObservableList<UtentePassword> lista = FXCollections.observableArrayList();
-		lista.addAll(model.listUtenti(idEnte));
+		lista.add(new UtentePassword());
+		lista.addAll(model.getUtenti(idEnte));
 		return lista;
 
 	}
 
 	@FXML
 	public void onEnteSelected(ActionEvent e) {
-		noteTxt.clear();
+		
 		Ente selezionato = entiCombo.getValue();
-		if (selezionato == null) {
-			urlTxt.setText("Selezionare un ente.");
-			return;
+		if (selezionato != null) {
+			setInitialState();
 		}
+		
+		Model.setEnteSelezionato(selezionato);
+
+	}
+	
+	private void setInitialState() {
+		Ente selezionato = entiCombo.getValue();
 		urlTxt.setText(selezionato.getUrl());
 
 		ente = selezionato.getId();
@@ -205,29 +170,29 @@ public class PasswordController {
 		utentePasswordTable.setItems(utenti);
 
 		clearAll();
-
 	}
-	
+
 	@FXML
 	public void handleDBManagement(ActionEvent event) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("dbManagement.fxml"));
-			AnchorPane root = (AnchorPane)loader.load();
+			AnchorPane root = (AnchorPane) loader.load();
 			DBManagementController controller = loader.getController();
-			
-			//set Model
+
+			// set Model
 			Model model = new Model();
 			controller.setModel(model);
-			
+
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
+			Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 			stage.setScene(scene);
 			stage.show();
-		} catch(Exception e) {
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 }

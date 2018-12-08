@@ -3,6 +3,8 @@ package db;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mysql.jdbc.Statement;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -109,6 +111,34 @@ public class PasswordDAO {
 			throw new RuntimeException("Errore nella connessione al database.");
 		}
 		return;
+	}
+
+	public int saveNewEnte(String nome, String url) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "INSERT INTO ente (nome, url) " + 
+		"VALUES ( ?, ?);";
+		PreparedStatement st;
+		
+		try {
+			st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			
+			st.setString(1, nome);
+			st.setString(2, url);
+			
+			st.executeUpdate();
+			
+			ResultSet ids = st.getGeneratedKeys();
+			ids.next();
+			int id = ids.getInt(1);
+			
+			st.close();
+			conn.close();
+			
+			return id;
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		
 	}
 
 }

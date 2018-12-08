@@ -8,7 +8,7 @@ public class Ente {
 	public Ente() {
 		this.id = 0;
 		this.nome = "";
-		this.url = "";
+		this.url = "N.N.";
 	}
 
 	public Ente(int id, String nome, String url) {
