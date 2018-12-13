@@ -4,21 +4,23 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import model.Ente;
 import model.Model;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 
 public class DBManagementController {
 	private Model model;
-	
-	private Ente enteSelezionato;
 	
     @FXML
     private ResourceBundle resources;
@@ -36,16 +38,16 @@ public class DBManagementController {
     private TextField urlTxt;
 
     @FXML
-    private Button saveBtn;
+    private Button saveEnteBtn;
     
     @FXML
-    private Button deleteBtn;
+    private Button deleteEnteBtn;
 
 	
 	public void setModel(Model model) {
 		this.model = model;
-		this.enteSelezionato = Model.getEnteSelezionato();
-        setTextFields();
+		Ente enteSelezionato = Model.getEnteSelezionato();
+        setTextFields(enteSelezionato);
 	}
 
 	public void handleGoBack(ActionEvent event) {
@@ -94,42 +96,78 @@ public class DBManagementController {
 	
 	@FXML
 	public void handleSaveBtn(ActionEvent e) {
-	
-		if(enteSelezionato.getId() == 0) {
-			String nome = nomeTxt.getText();
-			nome = nome.toUpperCase();
-			//TO DO: non permettere nomi uguali
-			String url = urlTxt.getText();
-			int id = model.saveNewEnte(nome, url);
-			
-			enteSelezionato = new Ente(id, nome, url);
-			setTextFields();
-			
-			System.out.println("Salvato nuovo ente");
-		} else {
-			System.out.println("Aggiornato ente esistente");
+		Ente enteSelezionato = Model.getEnteSelezionato();
+		int id = enteSelezionato.getId();
+		String nome = nomeTxt.getText().toUpperCase();
+		String url = urlTxt.getText();
+		
+		if(nome.equals("")) {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setContentText("Nome ente non specificato." );
+			alert.showAndWait();
+			return;
 		}
-		Model.setEnteSelezionato(this.enteSelezionato);
+	
+		if(id == 0) {
+			if(model.isExisting(nome)) {
+				Alert alert = new Alert(AlertType.INFORMATION);
+				alert.setContentText("Nome ente " + nome + " già presente.");
+				alert.showAndWait();
+				return;
+			}
+			
+			int newID = model.saveNewEnte(nome, url);
+			
+			enteSelezionato = new Ente(newID, nome, url);
+			
+		} else {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setHeaderText("Attenzione: modifica irreversibile dei dati.");
+			String content = "Nuovi valori: " + nome + ", " + url;
+			alert.setContentText(content);
+			Optional<ButtonType> result = alert.showAndWait();
+			if(result.get() == ButtonType.OK) {
+				enteSelezionato = new Ente(id, nome, url);
+				model.updateEnte(enteSelezionato);
+			}
+			
+		}
+		setTextFields(enteSelezionato);
+		Model.setEnteSelezionato(enteSelezionato);
 	}
 	
 	@FXML
 	public void handleDeletaBtn(ActionEvent e) {
-		
+		Ente enteSelezionato = Model.getEnteSelezionato();
+		int rowErased = model.deleteEnte(enteSelezionato);
+		if(rowErased == 0) {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			String content = "Presenti Utenti per " +
+					enteSelezionato.getNome();
+			alert.setContentText(content);
+			alert.showAndWait();
+			
+		} else {
+			Ente newEnte = new Ente();
+			setTextFields(newEnte);
+			Model.setEnteSelezionato(newEnte);
+			
+		}
 	}
 	
 	@FXML
     void initialize() {
 		assert nomeTxt != null : "fx:id=\"nomeTxt\" was not injected: check your FXML file 'dbManagement.fxml'.";
         assert urlTxt != null : "fx:id=\"urlTxt\" was not injected: check your FXML file 'dbManagement.fxml'.";
-        assert saveBtn != null : "fx:id=\"saveBtn\" was not injected: check your FXML file 'dbManagement.fxml'.";
-        assert deleteBtn != null : "fx:id=\"deleteBtn\" was not injected: check your FXML file 'dbManagement.fxml'.";
+        assert saveEnteBtn != null : "fx:id=\"saveBtn\" was not injected: check your FXML file 'dbManagement.fxml'.";
+        assert deleteEnteBtn != null : "fx:id=\"deleteBtn\" was not injected: check your FXML file 'dbManagement.fxml'.";
         
     }
 	
-	private void setTextFields() {
-		idTxt.setText(Integer.toString(enteSelezionato.getId()));
-        nomeTxt.setText(enteSelezionato.getNome());
-        urlTxt.setText(enteSelezionato.getUrl());
+	private void setTextFields(Ente ente) {
+		idTxt.setText(Integer.toString(ente.getId()));
+        nomeTxt.setText(ente.getNome());
+        urlTxt.setText(ente.getUrl());
 	}
 	
 }

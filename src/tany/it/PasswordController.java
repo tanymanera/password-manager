@@ -76,7 +76,7 @@ public class PasswordController {
 	@FXML
 	private TextField passwordTxt;
 
-	private int ente;
+	private int enteID;
 
 	@FXML
 	void handleShow(MouseEvent event) {
@@ -165,8 +165,8 @@ public class PasswordController {
 		Ente selezionato = entiCombo.getValue();
 		urlTxt.setText(selezionato.getUrl());
 
-		ente = selezionato.getId();
-		ObservableList<UtentePassword> utenti = listUtenti(ente);
+		enteID = selezionato.getId();
+		ObservableList<UtentePassword> utenti = listUtenti(enteID);
 		utentePasswordTable.setItems(utenti);
 
 		clearAll();

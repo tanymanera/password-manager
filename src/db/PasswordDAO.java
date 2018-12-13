@@ -141,4 +141,59 @@ public class PasswordDAO {
 		
 	}
 
+	public boolean isExisting(String nome) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "SELECT id, nome, url FROM ente WHERE nome=?;";
+		PreparedStatement st;
+		try {
+			st = conn.prepareStatement(sql);
+			st.setString(1, nome);
+			
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				return true;
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		return false;
+	}
+
+	public void updateEnte(int id, String nome, String url) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "UPDATE ente " +
+				"SET nome=?, url=? " + 
+				"WHERE id=?;";
+		
+		PreparedStatement st;
+		try {
+			st = conn.prepareStatement(sql);
+			st.setString(1, nome);
+			st.setString(2, url);
+			st.setInt(3, id);
+			
+			st.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		
+	}
+
+	public int deleteEnte(int id) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "DELETE FROM ente WHERE id=? " +
+		"AND id NOT IN (SELECT id_ente FROM utente_password);";
+		PreparedStatement st;
+		int rowsErased = 0;
+		try {
+			st = conn.prepareStatement(sql);
+			st.setInt(1, id);
+			
+			rowsErased = st.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		return rowsErased;
+	}
+
 }

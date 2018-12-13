@@ -52,4 +52,23 @@ public class Model {
 		
 	}
 
+	public boolean isExisting(String nome) {
+		
+		return dao.isExisting(nome);
+	}
+
+	public void updateEnte(Ente ente) {
+		int id = ente.getId();
+		String nome = ente.getNome();
+		String url = ente.getUrl();
+		
+		dao.updateEnte(id, nome, url);
+		
+	}
+
+	public int deleteEnte(Ente ente) {
+		int id = ente.getId();
+		return dao.deleteEnte(id);
+	}
+
 }
