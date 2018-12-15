@@ -2,6 +2,11 @@ package model;
 
 public class UtentePassword {
 
+	@Override
+	public String toString() {
+		return String.format("utente=%s\n userId=%s\n password=%s", utente, userId, password);
+	}
+
 	private int id;
 	private int idEnte;
 	private String utente;
@@ -30,6 +35,16 @@ public class UtentePassword {
 		this.userId = userId;
 		this.password = password;
 		this.note = note;
+	}
+
+	public UtentePassword(int idEnte) {
+		this.id = 0;
+		this.idEnte = idEnte;
+		this.utente = "";
+		this.email = "";
+		this.userId = "";
+		this.password = "";
+		this.note = "N.N.";
 	}
 
 	public int getId() {

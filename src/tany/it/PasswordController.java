@@ -65,9 +65,6 @@ public class PasswordController {
 	private TableColumn<UtentePassword, String> emailColumn;
 
 	@FXML
-	private Button showBtn;
-
-	@FXML
 	private TextArea noteTxt;
 
 	@FXML
@@ -83,24 +80,16 @@ public class PasswordController {
 
 		UtentePassword utente = utentePasswordTable.getSelectionModel().getSelectedItem();
 
-		if (utente == null) {
-			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setContentText("Selezionare una riga.");
-			alert.showAndWait();
-			return;
-		}
-		noteTxt.setText(utente.getNote());
+		Model.setUtenteSelezionato(utente);
+		
+		setTextFields();
+	}
+	
+	private void setTextFields() {
+		UtentePassword utente = Model.getUtenteSelezionato();
 		userIdTxt.setText(utente.getUserId());
 		passwordTxt.setText(utente.getPassword());
-
-	}
-
-	private void clearAll() {
-
-		noteTxt.clear();
-		userIdTxt.clear();
-		passwordTxt.clear();
-
+		noteTxt.setText(utente.getNote());
 	}
 
 	@FXML
@@ -112,7 +101,6 @@ public class PasswordController {
 		assert userIdColumn != null : "fx:id=\"userIdColumn\" was not injected: check your FXML file 'password.fxml'.";
 		assert passwordColumn != null : "fx:id=\"passwordColumn\" was not injected: check your FXML file 'password.fxml'.";
 		assert emailColumn != null : "fx:id=\"emailColumn\" was not injected: check your FXML file 'password.fxml'.";
-		assert showBtn != null : "fx:id=\"editBtn\" was not injected: check your FXML file 'password.fxml'.";
 		assert noteTxt != null : "fx:id=\"noteTxt\" was not injected: check your FXML file 'password.fxml'.";
 		assert userIdTxt != null : "fx:id=\"userIdTxt\" was not injected: check your FXML file 'password.fxml'.";
 		assert passwordTxt != null : "fx:id=\"passwordTxt\" was not injected: check your FXML file 'password.fxml'.";
@@ -135,7 +123,7 @@ public class PasswordController {
 		if(selezionato != null) {
 			entiCombo.getSelectionModel().select(selezionato);
 			
-			setInitialState();
+			setInitialState(selezionato);
 		}
 		
 
@@ -153,23 +141,23 @@ public class PasswordController {
 	public void onEnteSelected(ActionEvent e) {
 		
 		Ente selezionato = entiCombo.getValue();
+		Model.setUtenteSelezionato(new UtentePassword());
 		if (selezionato != null) {
-			setInitialState();
+			setInitialState(selezionato);
 		}
 		
 		Model.setEnteSelezionato(selezionato);
 
 	}
 	
-	private void setInitialState() {
-		Ente selezionato = entiCombo.getValue();
-		urlTxt.setText(selezionato.getUrl());
+	private void setInitialState(Ente ente) {
+		urlTxt.setText(ente.getUrl());
 
-		enteID = selezionato.getId();
+		enteID = ente.getId();
 		ObservableList<UtentePassword> utenti = listUtenti(enteID);
 		utentePasswordTable.setItems(utenti);
-
-		clearAll();
+		
+		setTextFields();
 	}
 
 	@FXML

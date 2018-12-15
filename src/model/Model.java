@@ -10,6 +10,15 @@ public class Model {
 
 	private List<Ente> listaEnti;
 	private static Ente enteSelezionato = new Ente();
+	private static UtentePassword utenteSelezionato = new UtentePassword();
+
+	public static UtentePassword getUtenteSelezionato() {
+		return utenteSelezionato;
+	}
+
+	public static void setUtenteSelezionato(UtentePassword utente) {
+		Model.utenteSelezionato = utente;
+	}
 
 	public static void setEnteSelezionato(Ente es) {
 		enteSelezionato = es;
@@ -69,6 +78,11 @@ public class Model {
 	public int deleteEnte(Ente ente) {
 		int id = ente.getId();
 		return dao.deleteEnte(id);
+	}
+
+	public void deleteUtente() {
+		// TODO Auto-generated method stub
+		System.out.println("Utente cancellato.");
 	}
 
 }
