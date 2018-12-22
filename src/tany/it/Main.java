@@ -24,7 +24,7 @@ public class Main extends Application {
 			PasswordController controller = loader.getController();
 			
 			//set Model
-			Model model = new Model();
+			Model model = Model.getModel();
 			controller.setModel(model);
 			
 			Scene scene = new Scene(root);

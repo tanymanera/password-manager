@@ -4,11 +4,11 @@ public class UtentePassword {
 
 	@Override
 	public String toString() {
-		return String.format("utente=%s\n userId=%s\n password=%s", utente, userId, password);
+		return String.format("utente=%s\nuserId=%s\npassword=%s", utente, userId, password);
 	}
 
 	private int id;
-	private int idEnte;
+	private int idEnte = 0;
 	private String utente;
 	private String email;
 	private String userId;

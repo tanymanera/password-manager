@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.mysql.jdbc.Statement;
 
+import javafx.scene.control.Alert.AlertType;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -140,6 +142,39 @@ public class PasswordDAO {
 		}
 		
 	}
+	
+	public int saveNewUtente(int idEnte, String utente, String email, String userId, String password, String note) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "INSERT INTO utente_password (id_ente, utente, email, user_id, pw, note) " + 
+		"VALUES ( ?, ?, ?, ?, ?, ?);";
+		PreparedStatement st;
+		int id;
+		
+		try {
+			st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			
+			st.setInt(1, idEnte);
+			st.setString(2, utente);
+			st.setString(3, email);
+			st.setString(4, userId);
+			st.setString(5, password);
+			st.setString(6, note);
+			
+			st.executeUpdate();
+			
+			ResultSet ids = st.getGeneratedKeys();
+			ids.next();
+			id = ids.getInt(1);
+			
+			st.close();
+			conn.close();
+			
+			return id;
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		
+	}
 
 	public boolean isExisting(String nome) {
 		Connection conn = DBConnect.getConnection();
@@ -178,6 +213,32 @@ public class PasswordDAO {
 		}
 		
 	}
+	
+	public void updateUtente(int id, int idEnte, String utente, String email, String userId, String password,
+			String note) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "UPDATE utente_password " +
+				"SET id_ente=?, utente=?, email=?, user_id=?, pw=?, note=? " + 
+				"WHERE id=?;";
+		
+		PreparedStatement st;
+		try {
+			st = conn.prepareStatement(sql);
+			
+			st.setInt(7, id);
+			st.setInt(1, idEnte);
+			st.setString(2, utente);
+			st.setString(3, email);
+			st.setString(4, userId);
+			st.setString(5, password);
+			st.setString(6, note);
+			
+			st.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		
+	}
 
 	public int deleteEnte(int id) {
 		Connection conn = DBConnect.getConnection();
@@ -194,6 +255,21 @@ public class PasswordDAO {
 			throw new RuntimeException("Errore nella connessione al database.");
 		}
 		return rowsErased;
+	}
+
+	public void deleteUtente(int id) {
+		Connection conn = DBConnect.getConnection();
+		String sql = "DELETE FROM utente_password WHERE id=? ";
+		PreparedStatement st;
+		try {
+			st = conn.prepareStatement(sql);
+			st.setInt(1, id);
+			
+			st.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException("Errore nella connessione al database.");
+		}
+		
 	}
 
 }

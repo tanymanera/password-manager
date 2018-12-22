@@ -21,6 +21,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -35,7 +36,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class PasswordController {
-	private Model model;
+	private Model model = Model.getModel();
+	
+	private boolean isUtenteTabDisable = true;
+	
+	public void setUtenteTabDisable(boolean isUtenteTabDisable) {
+		this.isUtenteTabDisable = isUtenteTabDisable;
+	}
 
 	@FXML
 	private ResourceBundle resources;
@@ -79,14 +86,16 @@ public class PasswordController {
 	void handleShow(MouseEvent event) {
 
 		UtentePassword utente = utentePasswordTable.getSelectionModel().getSelectedItem();
-
-		Model.setUtenteSelezionato(utente);
+//		Model model = Model.getModel();
+		model.setUtenteSelezionato(utente);
 		
 		setTextFields();
+		
 	}
 	
 	private void setTextFields() {
-		UtentePassword utente = Model.getUtenteSelezionato();
+//		Model model = Model.getModel();
+		UtentePassword utente = model.getUtenteSelezionato();
 		userIdTxt.setText(utente.getUserId());
 		passwordTxt.setText(utente.getPassword());
 		noteTxt.setText(utente.getNote());
@@ -113,6 +122,7 @@ public class PasswordController {
 	}
 
 	public void setModel(Model model) {
+
 		this.model = model;
 		// aggiunge una riga vuota alla combo
 		entiCombo.getItems().add(new Ente());
@@ -141,12 +151,21 @@ public class PasswordController {
 	public void onEnteSelected(ActionEvent e) {
 		
 		Ente selezionato = entiCombo.getValue();
-		Model.setUtenteSelezionato(new UtentePassword());
+		Model model = Model.getModel();
+		model.setUtenteSelezionato(new UtentePassword());
+		
 		if (selezionato != null) {
 			setInitialState(selezionato);
 		}
 		
 		Model.setEnteSelezionato(selezionato);
+		model.setUtenteSelezionato(new UtentePassword(selezionato.getId()));
+		
+		if(selezionato == null || selezionato.getId() == 0) {
+			isUtenteTabDisable = true;
+		} else {
+			isUtenteTabDisable = false;
+		}
 
 	}
 	
@@ -168,8 +187,10 @@ public class PasswordController {
 			DBManagementController controller = loader.getController();
 
 			// set Model
-			Model model = new Model();
+			Model model = Model.getModel();
 			controller.setModel(model);
+			controller.setUtenteTabDisable(isUtenteTabDisable);
+			controller.disableUtenteTab(isUtenteTabDisable);
 
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());

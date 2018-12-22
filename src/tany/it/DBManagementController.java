@@ -8,6 +8,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -19,11 +21,24 @@ import model.UtentePassword;
 import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
+
+import com.sun.media.jfxmedia.events.NewFrameEvent;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 
 public class DBManagementController {
 	private Model model;
+	
+	private boolean isUtenteTabDisable;
+
+	public void setUtenteTabDisable(boolean isUtenteTabDisable) {
+		this.isUtenteTabDisable = isUtenteTabDisable;
+	}
+
+	public void disableUtenteTab(boolean b) {
+		utenteTab.setDisable(b);
+	}
 
 	@FXML
 	private ResourceBundle resources;
@@ -45,6 +60,9 @@ public class DBManagementController {
 
 	@FXML
 	private Button deleteEnteBtn;
+
+	@FXML
+	private Tab utenteTab;
 
 	@FXML
 	private TextField idUtenteTxt;
@@ -76,8 +94,9 @@ public class DBManagementController {
 	public void setModel(Model model) {
 		this.model = model;
 		Ente enteSelezionato = Model.getEnteSelezionato();
-		UtentePassword utenteSelezionato = Model.getUtenteSelezionato();
+		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
 		setTextFields(enteSelezionato, utenteSelezionato);
+
 	}
 
 	public void handleGoBack(ActionEvent event) {
@@ -85,9 +104,10 @@ public class DBManagementController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("password.fxml"));
 			AnchorPane root = (AnchorPane) loader.load();
 			PasswordController controller = loader.getController();
+			controller.setUtenteTabDisable(isUtenteTabDisable);
 
 			// set Model
-			Model model = new Model();
+			Model model = Model.getModel();
 			controller.setModel(model);
 
 			Scene scene = new Scene(root);
@@ -100,29 +120,6 @@ public class DBManagementController {
 			e.printStackTrace();
 		}
 	}
-
-//	@FXML
-//	public void handelSaveBtn() {
-//		Alert alert = new Alert(AlertType.CONFIRMATION);
-//		alert.setHeaderText("Attenzione: modifica irreversibile dei dati.");
-//		String userId = userIdTxt.getText();
-//		String password = passwordTxt.getText();
-//		String nota = noteTxt.getText();
-//		String content = "Valori che saranno salvati:\n" + userId + "\n" + password + "\n" + nota;
-//		alert.setContentText(content);
-//		Optional<ButtonType> result = alert.showAndWait();
-//		UtentePassword utente = utentePasswordTable.getSelectionModel().getSelectedItem();
-//		int id = utente.getId();
-//
-//		if (result.get() == ButtonType.OK) {
-//			model.aggiornaUtente(id, userId, password, nota);
-//
-//			ObservableList<UtentePassword> utenti = listUtenti(ente);
-//			utentePasswordTable.setItems(utenti);
-//			
-//		} 
-//		clearAll();
-//	}
 
 	@FXML
 	public void handleSaveEnteBtn(ActionEvent e) {
@@ -138,21 +135,24 @@ public class DBManagementController {
 			return;
 		}
 
+		if (model.isExisting(nome)) {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setContentText("Nome ente " + nome + " già presente.");
+			alert.showAndWait();
+			return;
+		}
+
 		if (id == 0) {
-			if (model.isExisting(nome)) {
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setContentText("Nome ente " + nome + " già presente.");
-				alert.showAndWait();
-				return;
-			}
 
 			int newID = model.saveNewEnte(nome, url);
-
 			enteSelezionato = new Ente(newID, nome, url);
 
-		} else {
+			utenteTab.setDisable(false);
+			isUtenteTabDisable = false;
+
+		} else { // id diverso da zero e quindi corrispondente ad un ente già esistente
 			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setHeaderText("Attenzione: modifica irreversibile dei dati.");
+			alert.setHeaderText("Attenzione: modifica dei dati.");
 			String content = "Nuovi valori: " + nome + ", " + url;
 			alert.setContentText(content);
 			Optional<ButtonType> result = alert.showAndWait();
@@ -162,7 +162,8 @@ public class DBManagementController {
 			}
 
 		}
-		setTextFields(enteSelezionato, Model.getUtenteSelezionato());
+		// Settaggio dei campi di testo e aggiornamento del modello
+		setTextFields(enteSelezionato, model.getUtenteSelezionato());
 		Model.setEnteSelezionato(enteSelezionato);
 	}
 
@@ -178,8 +179,10 @@ public class DBManagementController {
 
 		} else {
 			Ente newEnte = new Ente();
-			setTextFields(newEnte, Model.getUtenteSelezionato());
+			setTextFields(newEnte, model.getUtenteSelezionato());
 			Model.setEnteSelezionato(newEnte);
+			utenteTab.setDisable(true);
+			isUtenteTabDisable = true;
 
 		}
 
@@ -187,12 +190,46 @@ public class DBManagementController {
 
 	@FXML
 	public void handleSaveUtenteBtn(ActionEvent e) {
-		System.out.println("Salvo un utente.");
+		int id = model.getUtenteSelezionato().getId();
+		int idEnte = model.getUtenteSelezionato().getIdEnte();
+		String utente = utenteTxt.getText();
+		String email = emailTxt.getText();
+		String userId = userIdTxt.getText();
+		String password = passwordTxt.getText();
+		String note = noteTxt.getText();
+
+		if (userId.equals("") || password.equals("")) {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setContentText("Campo obbligatorio assente");
+			alert.showAndWait();
+			return;
+		}
+
+		UtentePassword newUtente = new UtentePassword(id, idEnte, utente, email, userId, password, note);
+
+		if (id == 0) {
+			int newID = model.saveNewUtente(newUtente);
+			newUtente.setId(newID);
+		} else { //id utente diverso da zero quindi si tratta di modificare un recor esistente
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setHeaderText("Attenzione: modifica dei dati.");
+			String content = "Nuovi valori: " + newUtente.toString();
+			alert.setContentText(content);
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				
+				model.updateUtente(newUtente);
+			}
+		}
+
+		// Settaggio dei campi di testo e aggiornamento del modello
+		setTextFields(Model.getEnteSelezionato(), newUtente);
+		model.setUtenteSelezionato(newUtente);
 	}
 
 	@FXML
 	public void handleDeleteUtenteBtn(ActionEvent e) {
-		UtentePassword utente = Model.getUtenteSelezionato();
+		UtentePassword utente = model.getUtenteSelezionato();
 		if (utente.getId() == 0) {
 			// TO DO: Alert ?
 			return;
@@ -202,11 +239,11 @@ public class DBManagementController {
 		alert.setContentText(content);
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.get() == ButtonType.OK) {
-			model.deleteUtente();
+			model.deleteUtente(utente);
 			Ente ente = Model.getEnteSelezionato();
-			Model.setUtenteSelezionato(new UtentePassword(ente.getId()));
+			model.setUtenteSelezionato(new UtentePassword(ente.getId()));
 //			System.out.println(Model.getUtenteSelezionato().getIdEnte());
-			utente = Model.getUtenteSelezionato();
+			utente = model.getUtenteSelezionato();
 			setTextFields(ente, utente);
 		}
 	}
@@ -218,6 +255,7 @@ public class DBManagementController {
 		assert saveEnteBtn != null : "fx:id=\"saveEnteBtn\" was not injected: check your FXML file 'dbManagement.fxml'.";
 		assert idTxt != null : "fx:id=\"idTxt\" was not injected: check your FXML file 'dbManagement.fxml'.";
 		assert deleteEnteBtn != null : "fx:id=\"deleteEnteBtn\" was not injected: check your FXML file 'dbManagement.fxml'.";
+		assert utenteTab != null : "fx:id=\"utenteTab\" was not injected: check your FXML file 'dbManagement.fxml'.";
 		assert idUtenteTxt != null : "fx:id=\"idUtenteTxt\" was not injected: check your FXML file 'dbManagement.fxml'.";
 		assert enteUtenteTxt != null : "fx:id=\"enteUtenteTxt\" was not injected: check your FXML file 'dbManagement.fxml'.";
 		assert utenteTxt != null : "fx:id=\"utenteTxt\" was not injected: check your FXML file 'dbManagement.fxml'.";

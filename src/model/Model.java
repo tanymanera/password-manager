@@ -5,19 +5,28 @@ import java.util.List;
 import db.PasswordDAO;
 
 public class Model {
+	
+	private static Model model = null;
 
 	PasswordDAO dao;
 
 	private List<Ente> listaEnti;
 	private static Ente enteSelezionato = new Ente();
-	private static UtentePassword utenteSelezionato = new UtentePassword();
+	private UtentePassword utenteSelezionato;
+	
+	private Model() {
+		this.dao = new PasswordDAO();
+		
+		this.utenteSelezionato = new UtentePassword();
 
-	public static UtentePassword getUtenteSelezionato() {
+	}
+
+	public UtentePassword getUtenteSelezionato() {
 		return utenteSelezionato;
 	}
 
-	public static void setUtenteSelezionato(UtentePassword utente) {
-		Model.utenteSelezionato = utente;
+	public void setUtenteSelezionato(UtentePassword utente) {
+		this.utenteSelezionato = utente;
 	}
 
 	public static void setEnteSelezionato(Ente es) {
@@ -28,10 +37,13 @@ public class Model {
 		return enteSelezionato;
 	}
 
-	public Model() {
-
-		this.dao = new PasswordDAO();
-
+	public static synchronized Model getModel() {
+		
+		if(model == null) {
+			model = new Model();
+		}
+		return model;
+		
 	}
 
 	public List<Ente> getEnti() {
@@ -80,9 +92,33 @@ public class Model {
 		return dao.deleteEnte(id);
 	}
 
-	public void deleteUtente() {
-		// TODO Auto-generated method stub
-		System.out.println("Utente cancellato.");
+	public void deleteUtente(UtentePassword utente) {
+		int id = utente.getId();
+		dao.deleteUtente(id);
+	}
+
+	public int saveNewUtente(UtentePassword newUtente) {
+		int idEnte = newUtente.getIdEnte();
+		String utente = newUtente.getUtente();
+		String email = newUtente.getEmail();
+		String userId = newUtente.getUserId();
+		String password = newUtente.getPassword();
+		String note = newUtente.getNote();
+		
+		return dao.saveNewUtente(idEnte, utente, email, userId, password, note);
+	}
+
+	public void updateUtente(UtentePassword newUtente) {
+		int id = newUtente.getId();
+		int idEnte = newUtente.getIdEnte();
+		String utente = newUtente.getUtente();
+		String email = newUtente.getEmail();
+		String userId = newUtente.getUserId();
+		String password = newUtente.getPassword();
+		String note = newUtente.getNote();
+		
+		dao.updateUtente(id, idEnte, utente, email, userId, password, note);
+		
 	}
 
 }
