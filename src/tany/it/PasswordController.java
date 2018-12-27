@@ -80,13 +80,10 @@ public class PasswordController {
 	@FXML
 	private TextField passwordTxt;
 
-	private int enteID;
-
 	@FXML
 	void handleShow(MouseEvent event) {
 
 		UtentePassword utente = utentePasswordTable.getSelectionModel().getSelectedItem();
-//		Model model = Model.getModel();
 		model.setUtenteSelezionato(utente);
 		
 		setTextFields();
@@ -94,7 +91,6 @@ public class PasswordController {
 	}
 	
 	private void setTextFields() {
-//		Model model = Model.getModel();
 		UtentePassword utente = model.getUtenteSelezionato();
 		userIdTxt.setText(utente.getUserId());
 		passwordTxt.setText(utente.getPassword());
@@ -129,7 +125,7 @@ public class PasswordController {
 		List<Ente> enti = model.getEnti();
 		enti.sort(Comparator.comparing(Ente::getNome));
 		entiCombo.getItems().addAll(enti);
-		Ente selezionato = Model.getEnteSelezionato();
+		Ente selezionato = model.getEnteSelezionato();
 		if(selezionato != null) {
 			entiCombo.getSelectionModel().select(selezionato);
 			
@@ -158,7 +154,7 @@ public class PasswordController {
 			setInitialState(selezionato);
 		}
 		
-		Model.setEnteSelezionato(selezionato);
+		model.setEnteSelezionato(selezionato);
 		model.setUtenteSelezionato(new UtentePassword(selezionato.getId()));
 		
 		if(selezionato == null || selezionato.getId() == 0) {
@@ -172,7 +168,7 @@ public class PasswordController {
 	private void setInitialState(Ente ente) {
 		urlTxt.setText(ente.getUrl());
 
-		enteID = ente.getId();
+		int enteID = ente.getId();
 		ObservableList<UtentePassword> utenti = listUtenti(enteID);
 		utentePasswordTable.setItems(utenti);
 		

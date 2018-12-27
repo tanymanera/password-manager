@@ -89,31 +89,6 @@ public class PasswordDAO {
 		return utenti;
 		
 	}
-	
-	public void aggiornaUtente(int id, String userId, String password, String nota) {
-		Connection conn = DBConnect.getConnection();
-		String sql = "UPDATE utente_password " + 
-		"SET user_id=?, pw=?, note=? " +
-				"WHERE id=?;";
-		PreparedStatement st;
-		
-		try {
-			st = conn.prepareStatement(sql);
-			
-			st.setString(1, userId);
-			st.setString(2, password);
-			st.setString(3, nota);
-			st.setInt(4, id);
-			
-			st.executeUpdate();
-			
-			st.close();
-			conn.close();
-		} catch (SQLException e) {
-			throw new RuntimeException("Errore nella connessione al database.");
-		}
-		return;
-	}
 
 	public int saveNewEnte(String nome, String url) {
 		Connection conn = DBConnect.getConnection();

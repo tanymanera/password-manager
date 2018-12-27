@@ -29,7 +29,7 @@ import javafx.fxml.FXML;
 
 public class DBManagementController {
 	private Model model;
-	
+
 	private boolean isUtenteTabDisable;
 
 	public void setUtenteTabDisable(boolean isUtenteTabDisable) {
@@ -93,7 +93,7 @@ public class DBManagementController {
 
 	public void setModel(Model model) {
 		this.model = model;
-		Ente enteSelezionato = Model.getEnteSelezionato();
+		Ente enteSelezionato = model.getEnteSelezionato();
 		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
 		setTextFields(enteSelezionato, utenteSelezionato);
 
@@ -123,7 +123,10 @@ public class DBManagementController {
 
 	@FXML
 	public void handleSaveEnteBtn(ActionEvent e) {
-		Ente enteSelezionato = Model.getEnteSelezionato();
+		Ente enteSelezionato = model.getEnteSelezionato();
+		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
+		
+		//acquisisce i campi
 		int id = enteSelezionato.getId();
 		String nome = nomeTxt.getText().toUpperCase();
 		String url = urlTxt.getText();
@@ -142,11 +145,13 @@ public class DBManagementController {
 			return;
 		}
 
-		if (id == 0) {
+		if (id == 0) { //Nuovo ente da salvare
 
 			int newID = model.saveNewEnte(nome, url);
 			enteSelezionato = new Ente(newID, nome, url);
-
+			
+			//il nuovo ente può accogliere un nuovo utente con enteId = newID
+			utenteSelezionato = new UtentePassword(newID);
 			utenteTab.setDisable(false);
 			isUtenteTabDisable = false;
 
@@ -163,35 +168,43 @@ public class DBManagementController {
 
 		}
 		// Settaggio dei campi di testo e aggiornamento del modello
-		setTextFields(enteSelezionato, model.getUtenteSelezionato());
-		Model.setEnteSelezionato(enteSelezionato);
+		updateModelAndTextFields(enteSelezionato, utenteSelezionato);
+		
 	}
 
 	@FXML
 	public void handleDeleteEnteBtn(ActionEvent e) {
-		Ente enteSelezionato = Model.getEnteSelezionato();
+		Ente enteSelezionato = model.getEnteSelezionato();
+		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
+		
 		int rowErased = model.deleteEnte(enteSelezionato);
-		if (rowErased == 0) {
+		
+		if (rowErased == 0) {	//Non è stato cancellato nessun record
 			Alert alert = new Alert(AlertType.INFORMATION);
 			String content = "Presenti Utenti per " + enteSelezionato.getNome();
 			alert.setContentText(content);
 			alert.showAndWait();
 
 		} else {
-			Ente newEnte = new Ente();
-			setTextFields(newEnte, model.getUtenteSelezionato());
-			Model.setEnteSelezionato(newEnte);
+			enteSelezionato = new Ente();
+			utenteSelezionato = new UtentePassword();
+			
+			//enteId = 0 quindi Tab utente non utilizzabile
 			utenteTab.setDisable(true);
 			isUtenteTabDisable = true;
 
 		}
+		updateModelAndTextFields(enteSelezionato, utenteSelezionato);
 
 	}
 
 	@FXML
 	public void handleSaveUtenteBtn(ActionEvent e) {
-		int id = model.getUtenteSelezionato().getId();
-		int idEnte = model.getUtenteSelezionato().getIdEnte();
+		Ente enteSelezionato = model.getEnteSelezionato();
+		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
+		
+		int id = utenteSelezionato.getId();
+		int idEnte = utenteSelezionato.getIdEnte();
 		String utente = utenteTxt.getText();
 		String email = emailTxt.getText();
 		String userId = userIdTxt.getText();
@@ -208,43 +221,46 @@ public class DBManagementController {
 		UtentePassword newUtente = new UtentePassword(id, idEnte, utente, email, userId, password, note);
 
 		if (id == 0) {
+			//leggo il id creato e aggiorno Utente appena creato. 
 			int newID = model.saveNewUtente(newUtente);
 			newUtente.setId(newID);
-		} else { //id utente diverso da zero quindi si tratta di modificare un recor esistente
+			utenteSelezionato = newUtente;
+			
+		} else { // id utente diverso da zero quindi si tratta di modificare un record esistente
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setHeaderText("Attenzione: modifica dei dati.");
 			String content = "Nuovi valori: " + newUtente.toString();
 			alert.setContentText(content);
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {
-				
-				model.updateUtente(newUtente);
+
+				utenteSelezionato = newUtente;
 			}
 		}
 
 		// Settaggio dei campi di testo e aggiornamento del modello
-		setTextFields(Model.getEnteSelezionato(), newUtente);
-		model.setUtenteSelezionato(newUtente);
+		updateModelAndTextFields(enteSelezionato, newUtente);
 	}
 
 	@FXML
 	public void handleDeleteUtenteBtn(ActionEvent e) {
-		UtentePassword utente = model.getUtenteSelezionato();
-		if (utente.getId() == 0) {
-			// TO DO: Alert ?
+		Ente enteSelezionato = model.getEnteSelezionato();
+		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
+		
+		if (utenteSelezionato.getId() == 0) {
+			//TODO: Alert ?
 			return;
 		}
 		Alert alert = new Alert(AlertType.CONFIRMATION);
-		String content = "Cancellazione definitiva di:\n" + utente.toString();
+		String content = "Cancellazione definitiva di:\n" + utenteSelezionato.toString();
 		alert.setContentText(content);
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.get() == ButtonType.OK) {
-			model.deleteUtente(utente);
-			Ente ente = Model.getEnteSelezionato();
-			model.setUtenteSelezionato(new UtentePassword(ente.getId()));
-//			System.out.println(Model.getUtenteSelezionato().getIdEnte());
-			utente = model.getUtenteSelezionato();
-			setTextFields(ente, utente);
+			model.deleteUtente(utenteSelezionato);
+			
+			utenteSelezionato = new UtentePassword(enteSelezionato.getId());
+			
+			updateModelAndTextFields(enteSelezionato, utenteSelezionato);
 		}
 	}
 
@@ -269,6 +285,7 @@ public class DBManagementController {
 	}
 
 	private void setTextFields(Ente ente, UtentePassword utente) {
+		// tab Ente
 		idTxt.setText(Integer.toString(ente.getId()));
 		nomeTxt.setText(ente.getNome());
 		urlTxt.setText(ente.getUrl());
@@ -281,6 +298,18 @@ public class DBManagementController {
 		userIdTxt.setText(utente.getUserId());
 		passwordTxt.setText(utente.getPassword());
 		noteTxt.setText(utente.getNote());
+
+	}
+
+	/*
+	 * dopo la modifica di ente o utente setta: -enteSelezionato e utenteSelezionato
+	 * in Model -aggiorna le caselle di testo delle 2 tabs della scene
+	 */
+	private void updateModelAndTextFields(Ente ente, UtentePassword utente) {
+		model.setEnteSelezionato(ente);
+		model.setUtenteSelezionato(utente);
+
+		setTextFields(ente, utente);
 
 	}
 
