@@ -1,5 +1,8 @@
 package model;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
 public class UtentePassword {
 
 	@Override
@@ -8,7 +11,7 @@ public class UtentePassword {
 	}
 
 	private int id;
-	private int idEnte = 0;
+	private IntegerProperty idEnte = new SimpleIntegerProperty(0);
 	private String utente;
 	private String email;
 	private String userId;
@@ -17,7 +20,7 @@ public class UtentePassword {
 	
 	public UtentePassword() {
 		this.id = 0;
-		this.idEnte = 0;
+		this.idEnte.set(0);
 		this.utente = "";
 		this.email = "";
 		this.userId = "";
@@ -29,22 +32,12 @@ public class UtentePassword {
 			String note) {
 		super();
 		this.id = id;
-		this.idEnte = idEnte;
+		this.idEnte.set(idEnte);
 		this.utente = utente;
 		this.email = email;
 		this.userId = userId;
 		this.password = password;
 		this.note = note;
-	}
-
-	public UtentePassword(int idEnte) {
-		this.id = 0;
-		this.idEnte = idEnte;
-		this.utente = "";
-		this.email = "";
-		this.userId = "";
-		this.password = "";
-		this.note = "N.N.";
 	}
 
 	public int getId() {
@@ -55,12 +48,16 @@ public class UtentePassword {
 		this.id = id;
 	}
 
-	public int getIdEnte() {
-		return idEnte;
+	public final int getIdEnte() {
+		return idEnte.get();
 	}
 
-	public void setIdEnte(int idEnte) {
-		this.idEnte = idEnte;
+	public final void setIdEnte(int idEnte) {
+		this.idEnte.set(idEnte);
+	}
+	
+	public IntegerProperty idEnteProperty() {
+		return idEnte;
 	}
 
 	public String getUtente() {

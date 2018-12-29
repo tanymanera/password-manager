@@ -8,9 +8,11 @@ import com.mchange.v2.c3p0.DataSources;
 
 import db.DBConnect;
 import javafx.application.Application;
+import javafx.beans.binding.BooleanBinding;
 import javafx.stage.Stage;
 import model.Model;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import javafx.fxml.FXMLLoader;
 

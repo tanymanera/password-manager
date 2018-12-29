@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -37,12 +38,6 @@ import javafx.stage.Stage;
 
 public class PasswordController {
 	private Model model = Model.getModel();
-	
-	private boolean isUtenteTabDisable = true;
-	
-	public void setUtenteTabDisable(boolean isUtenteTabDisable) {
-		this.isUtenteTabDisable = isUtenteTabDisable;
-	}
 
 	@FXML
 	private ResourceBundle resources;
@@ -84,12 +79,14 @@ public class PasswordController {
 	void handleShow(MouseEvent event) {
 
 		UtentePassword utente = utentePasswordTable.getSelectionModel().getSelectedItem();
+		// la riga vuota contiene un UtentePassword con IdEnte = 0
+		utente.setIdEnte(model.getEnteSelezionato().getId());
 		model.setUtenteSelezionato(utente);
-		
+
 		setTextFields();
-		
+
 	}
-	
+
 	private void setTextFields() {
 		UtentePassword utente = model.getUtenteSelezionato();
 		userIdTxt.setText(utente.getUserId());
@@ -126,12 +123,11 @@ public class PasswordController {
 		enti.sort(Comparator.comparing(Ente::getNome));
 		entiCombo.getItems().addAll(enti);
 		Ente selezionato = model.getEnteSelezionato();
-		if(selezionato != null) {
+		if (selezionato != null) {
 			entiCombo.getSelectionModel().select(selezionato);
-			
+
 			setInitialState(selezionato);
 		}
-		
 
 	}
 
@@ -145,33 +141,26 @@ public class PasswordController {
 
 	@FXML
 	public void onEnteSelected(ActionEvent e) {
-		
+
 		Ente selezionato = entiCombo.getValue();
 		Model model = Model.getModel();
-		model.setUtenteSelezionato(new UtentePassword());
-		
+
 		if (selezionato != null) {
 			setInitialState(selezionato);
 		}
-		
+
 		model.setEnteSelezionato(selezionato);
-		model.setUtenteSelezionato(new UtentePassword(selezionato.getId()));
-		
-		if(selezionato == null || selezionato.getId() == 0) {
-			isUtenteTabDisable = true;
-		} else {
-			isUtenteTabDisable = false;
-		}
+		model.getUtenteSelezionato().setIdEnte(selezionato.getId());
 
 	}
-	
+
 	private void setInitialState(Ente ente) {
 		urlTxt.setText(ente.getUrl());
 
 		int enteID = ente.getId();
 		ObservableList<UtentePassword> utenti = listUtenti(enteID);
 		utentePasswordTable.setItems(utenti);
-		
+
 		setTextFields();
 	}
 
@@ -185,15 +174,31 @@ public class PasswordController {
 			// set Model
 			Model model = Model.getModel();
 			controller.setModel(model);
-			controller.setUtenteTabDisable(isUtenteTabDisable);
-			controller.disableUtenteTab(isUtenteTabDisable);
+
+			//fa il binding tra il valore di idEnte di utenteSelezionato e utenteTab
+			controller.getUtenteTab().disableProperty().bind(new BooleanBinding() {
+				{
+					super.bind(model.getUtenteSelezionato().idEnteProperty());
+				}
+
+				@Override
+				protected boolean computeValue() {
+
+					if (model.getUtenteSelezionato().idEnteProperty().get() > 0) {
+
+						return false;
+					}
+
+					return true;
+				}
+			});
 
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 			stage.setScene(scene);
 			stage.show();
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

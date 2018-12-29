@@ -30,16 +30,6 @@ import javafx.fxml.FXML;
 public class DBManagementController {
 	private Model model;
 
-	private boolean isUtenteTabDisable;
-
-	public void setUtenteTabDisable(boolean isUtenteTabDisable) {
-		this.isUtenteTabDisable = isUtenteTabDisable;
-	}
-
-	public void disableUtenteTab(boolean b) {
-		utenteTab.setDisable(b);
-	}
-
 	@FXML
 	private ResourceBundle resources;
 
@@ -63,6 +53,11 @@ public class DBManagementController {
 
 	@FXML
 	private Tab utenteTab;
+
+	// TODO erase if it does not work
+	public Tab getUtenteTab() {
+		return utenteTab;
+	}
 
 	@FXML
 	private TextField idUtenteTxt;
@@ -104,7 +99,6 @@ public class DBManagementController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("password.fxml"));
 			AnchorPane root = (AnchorPane) loader.load();
 			PasswordController controller = loader.getController();
-			controller.setUtenteTabDisable(isUtenteTabDisable);
 
 			// set Model
 			Model model = Model.getModel();
@@ -125,8 +119,8 @@ public class DBManagementController {
 	public void handleSaveEnteBtn(ActionEvent e) {
 		Ente enteSelezionato = model.getEnteSelezionato();
 		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
-		
-		//acquisisce i campi
+
+		// acquisisce i campi
 		int id = enteSelezionato.getId();
 		String nome = nomeTxt.getText().toUpperCase();
 		String url = urlTxt.getText();
@@ -145,15 +139,20 @@ public class DBManagementController {
 			return;
 		}
 
-		if (id == 0) { //Nuovo ente da salvare
+		if (id == 0) { // Nuovo ente da salvare
 
 			int newID = model.saveNewEnte(nome, url);
 			enteSelezionato = new Ente(newID, nome, url);
-			
-			//il nuovo ente può accogliere un nuovo utente con enteId = newID
-			utenteSelezionato = new UtentePassword(newID);
-			utenteTab.setDisable(false);
-			isUtenteTabDisable = false;
+
+			// il nuovo ente può accogliere un nuovo utente con enteId = newID
+			// non si può usare il costruttore perchè si rompe il binding
+			utenteSelezionato.setId(0);
+			utenteSelezionato.setIdEnte(newID);
+			utenteSelezionato.setUtente("");
+			utenteSelezionato.setEmail("");
+			utenteSelezionato.setUserId("");
+			utenteSelezionato.setPassword("");
+			utenteSelezionato.setNote("");
 
 		} else { // id diverso da zero e quindi corrispondente ad un ente già esistente
 			Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -167,9 +166,9 @@ public class DBManagementController {
 			}
 
 		}
-		// Settaggio dei campi di testo e aggiornamento del modello
-		updateModelAndTextFields(enteSelezionato, utenteSelezionato);
 		
+		updateModelAndTextFields(enteSelezionato, utenteSelezionato);
+
 	}
 
 	@FXML
@@ -177,9 +176,13 @@ public class DBManagementController {
 		Ente enteSelezionato = model.getEnteSelezionato();
 		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
 		
+		if(enteSelezionato.getId() == 0) {
+			return;
+		}
+
 		int rowErased = model.deleteEnte(enteSelezionato);
-		
-		if (rowErased == 0) {	//Non è stato cancellato nessun record
+
+		if (rowErased == 0) { // Non è stato cancellato nessun record
 			Alert alert = new Alert(AlertType.INFORMATION);
 			String content = "Presenti Utenti per " + enteSelezionato.getNome();
 			alert.setContentText(content);
@@ -187,11 +190,14 @@ public class DBManagementController {
 
 		} else {
 			enteSelezionato = new Ente();
-			utenteSelezionato = new UtentePassword();
 			
-			//enteId = 0 quindi Tab utente non utilizzabile
-			utenteTab.setDisable(true);
-			isUtenteTabDisable = true;
+			utenteSelezionato.setId(0);
+			utenteSelezionato.setIdEnte(0);
+			utenteSelezionato.setUtente("");
+			utenteSelezionato.setEmail("");
+			utenteSelezionato.setUserId("");
+			utenteSelezionato.setPassword("");
+			utenteSelezionato.setNote("");
 
 		}
 		updateModelAndTextFields(enteSelezionato, utenteSelezionato);
@@ -202,7 +208,7 @@ public class DBManagementController {
 	public void handleSaveUtenteBtn(ActionEvent e) {
 		Ente enteSelezionato = model.getEnteSelezionato();
 		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
-		
+
 		int id = utenteSelezionato.getId();
 		int idEnte = utenteSelezionato.getIdEnte();
 		String utente = utenteTxt.getText();
@@ -221,11 +227,11 @@ public class DBManagementController {
 		UtentePassword newUtente = new UtentePassword(id, idEnte, utente, email, userId, password, note);
 
 		if (id == 0) {
-			//leggo il id creato e aggiorno Utente appena creato. 
+			// leggo il id creato e aggiorno Utente appena creato.
 			int newID = model.saveNewUtente(newUtente);
 			newUtente.setId(newID);
 			utenteSelezionato = newUtente;
-			
+
 		} else { // id utente diverso da zero quindi si tratta di modificare un record esistente
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setHeaderText("Attenzione: modifica dei dati.");
@@ -246,9 +252,8 @@ public class DBManagementController {
 	public void handleDeleteUtenteBtn(ActionEvent e) {
 		Ente enteSelezionato = model.getEnteSelezionato();
 		UtentePassword utenteSelezionato = model.getUtenteSelezionato();
-		
+
 		if (utenteSelezionato.getId() == 0) {
-			//TODO: Alert ?
 			return;
 		}
 		Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -258,8 +263,15 @@ public class DBManagementController {
 		if (result.get() == ButtonType.OK) {
 			model.deleteUtente(utenteSelezionato);
 			
-			utenteSelezionato = new UtentePassword(enteSelezionato.getId());
-			
+			//non si usa costruttore per non interrompre il bindig
+			utenteSelezionato.setId(0);
+			utenteSelezionato.setIdEnte(enteSelezionato.getId());
+			utenteSelezionato.setUtente("");
+			utenteSelezionato.setEmail("");
+			utenteSelezionato.setUserId("");
+			utenteSelezionato.setPassword("");
+			utenteSelezionato.setNote("");
+
 			updateModelAndTextFields(enteSelezionato, utenteSelezionato);
 		}
 	}
