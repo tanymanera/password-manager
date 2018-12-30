@@ -54,7 +54,6 @@ public class DBManagementController {
 	@FXML
 	private Tab utenteTab;
 
-	// TODO erase if it does not work
 	public Tab getUtenteTab() {
 		return utenteTab;
 	}
@@ -103,7 +102,8 @@ public class DBManagementController {
 			// set Model
 			Model model = Model.getModel();
 			controller.setModel(model);
-
+			controller.setTextFields();
+			
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();

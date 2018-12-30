@@ -87,7 +87,7 @@ public class PasswordController {
 
 	}
 
-	private void setTextFields() {
+	public void setTextFields() {
 		UtentePassword utente = model.getUtenteSelezionato();
 		userIdTxt.setText(utente.getUserId());
 		passwordTxt.setText(utente.getPassword());
@@ -150,7 +150,11 @@ public class PasswordController {
 		}
 
 		model.setEnteSelezionato(selezionato);
-		model.getUtenteSelezionato().setIdEnte(selezionato.getId());
+		UtentePassword utente = new UtentePassword();
+		utente.setIdEnte(selezionato.getId());
+		model.setUtenteSelezionato(utente);
+		
+		setTextFields();
 
 	}
 
@@ -161,7 +165,6 @@ public class PasswordController {
 		ObservableList<UtentePassword> utenti = listUtenti(enteID);
 		utentePasswordTable.setItems(utenti);
 
-		setTextFields();
 	}
 
 	@FXML
