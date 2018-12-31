@@ -102,7 +102,6 @@ public class DBManagementController {
 			// set Model
 			Model model = Model.getModel();
 			controller.setModel(model);
-			controller.setTextFields();
 			
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());

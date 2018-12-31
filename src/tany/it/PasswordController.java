@@ -123,11 +123,8 @@ public class PasswordController {
 		enti.sort(Comparator.comparing(Ente::getNome));
 		entiCombo.getItems().addAll(enti);
 		Ente selezionato = model.getEnteSelezionato();
-		if (selezionato != null) {
-			entiCombo.getSelectionModel().select(selezionato);
-
-			setInitialState(selezionato);
-		}
+		setInitialState(selezionato);
+		setTextFields();
 
 	}
 
