@@ -240,7 +240,8 @@ public class DBManagementController {
 			if (result.get() == ButtonType.OK) {
 
 				utenteSelezionato = newUtente;
-			}
+				model.updateUtente(utenteSelezionato);;			
+				}
 		}
 
 		// Settaggio dei campi di testo e aggiornamento del modello
