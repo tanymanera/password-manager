@@ -131,14 +131,14 @@ public class DBManagementController {
 			return;
 		}
 
-		if (model.isExisting(nome)) {
-			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setContentText("Nome ente " + nome + " già presente.");
-			alert.showAndWait();
-			return;
-		}
-
 		if (id == 0) { // Nuovo ente da salvare
+			
+			if (model.isExisting(nome)) {
+				Alert alert = new Alert(AlertType.INFORMATION);
+				alert.setContentText("Nome ente " + nome + " già presente.");
+				alert.showAndWait();
+				return;
+			}
 
 			int newID = model.saveNewEnte(nome, url);
 			enteSelezionato = new Ente(newID, nome, url);
